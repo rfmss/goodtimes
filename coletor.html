@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoodTimes Collector - Archive.org</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --card: #12121a;
+      --border: #1e1e2e;
+      --accent: #f59e0b;
+      --accent-hover: #fbbf24;
+      --copper: #b87333;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --text: #e2e8f0;
+      --text-dim: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      padding: 30px;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--copper), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .subtitle { color: var(--text-dim); font-size: 0.95rem; }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .stat-value { font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.error { color: var(--error); }
+    .stat-value.accent { color: var(--accent); }
+
+    .stat-label { font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .legal-note {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .legal-note h3 { color: var(--accent); font-size: 0.9rem; margin-bottom: 8px; }
+
+    .legal-note p { font-size: 0.8rem; color: var(--text); opacity: 0.8; line-height: 1.5; }
+
+    .queries-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+
+    .query-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.success { background: var(--success); }
+    .btn.copper { background: var(--copper); color: white; }
+
+    .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+    .progress-container { margin-top: 20px; display: none; }
+
+    .progress-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--copper), var(--accent));
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .log-container {
+      max-height: 250px;
+      overflow-y: auto;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .log-entry { padding: 2px 0; }
+    .log-entry.info { color: var(--text); }
+    .log-entry.success { color: var(--success); }
+    .log-entry.error { color: var(--error); }
+
+    .back-link {
+      color: var(--text-dim);
+      text-decoration: underline;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Player</a>
+      <h1>📻 GoodTimes Collector</h1>
+      <p class="subtitle">International Public Domain Music - Archive.org</p>
+    </header>
+
+    <div class="panel">
+      <div class="panel-title">📊 Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value accent" id="totalFound">0</div>
+          <div class="stat-label">Found</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value success" id="totalValid">0</div>
+          <div class="stat-label">Verified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value warning" id="totalPending">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value error" id="totalFailed">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+      </div>
+
+      <div class="legal-note">
+        <h3>⚖️ Public Domain Legal Reference</h3>
+        <p><strong>USA:</strong> Sound recordings published before 1923 = Public Domain. | <strong>EU:</strong> Sound recordings = 70 years from publication. | <strong>UK/Canada:</strong> Life + 70 years. This collector searches for early 78rpm, cylinder recordings, and early jazz/swing from pre-1923 era where possible.</p>
+      </div>
+
+      <div class="queries-list">
+        <span class="query-tag">subject:78rpm</span>
+        <span class="query-tag">subject:jazz</span>
+        <span class="query-tag">subject:ragtime</span>
+        <span class="query-tag">subject:brass band</span>
+        <span class="query-tag">subject:swing</span>
+        <span class="query-tag">subject:blues</span>
+        <span class="query-tag">collection:etree</span>
+        <span class="query-tag">subject:cylinder</span>
+        <span class="query-tag">subject:acoustic</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="collectBtn">🚀 Start Collection</button>
+        <button class="btn success" id="verifyBtn">✓ Verify URLs</button>
+        <button class="btn copper" id="exportBtn">📤 Export to Player</button>
+        <button class="btn" style="background: var(--error); color: white;" id="clearBtn">🗑 Clear All</button>
+      </div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressStatus">Processing...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">📝 Activity Log</div>
+      <div class="log-container" id="logContainer">
+        <div class="log-entry info">Ready to start collection...</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">💿 Catalog</div>
+      <div id="catalogCount" style="margin-bottom: 15px; color: var(--text-dim); font-size: 0.85rem;">0 items</div>
+      <div style="max-height: 200px; overflow-y: auto;">
+        <div id="catalogList" style="font-size: 0.8rem; color: var(--text); opacity: 0.7;">No items yet</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SEARCH_QUERIES = [
+      'subject:78rpm AND mediatype:audio',
+      'subject:jazz AND mediatype:audio',
+      'subject:ragtime AND mediatype:audio',
+      'subject:"brass band" AND mediatype:audio',
+      'subject:swing AND mediatype:audio',
+      'subject:blues AND mediatype:audio',
+      'subject:cylinder AND mediatype:audio',
+      'subject:acoustic AND mediatype:audio',
+      'collection:etree AND mediatype:audio'
+    ];
+
+    const AUDIO_PATTERNS = [
+      '{id}.mp3',
+      '{id}_64kb.mp3',
+      '{id}_128kb.mp3',
+      '01.mp3',
+      '01_64kb.mp3',
+      '{id}.ogg',
+      '{id}.flac'
+    ];
+
+    const STORAGE_KEY = 'goodtimesCatalog';
+    const PLAYLIST_KEY = 'goodtimesPlaylist';
+
+    let catalog = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const totalFound = document.getElementById('totalFound');
+    const totalValid = document.getElementById('totalValid');
+    const totalPending = document.getElementById('totalPending');
+    const totalFailed = document.getElementById('totalFailed');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressPercent = document.getElementById('progressPercent');
+    const logContainer = document.getElementById('logContainer');
+    const catalogList = document.getElementById('catalogList');
+    const catalogCount = document.getElementById('catalogCount');
+
+    function log(msg, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function updateStats() {
+      totalFound.textContent = catalog.length;
+      totalValid.textContent = catalog.filter(t => t.status === 'verified').length;
+      totalPending.textContent = catalog.filter(t => t.status === 'pending').length;
+      totalFailed.textContent = catalog.filter(t => t.status === 'failed').length;
+    }
+
+    function renderCatalog() {
+      catalogCount.textContent = `${catalog.length} items`;
+      catalogList.innerHTML = catalog.slice(0, 20).map(track => `
+        <div style="padding: 8px; border-bottom: 1px solid var(--border);">
+          <div style="font-weight: 600;">${track.title}</div>
+          <div style="opacity: 0.6; font-size: 0.75rem;">${track.artist} • ${track.status}</div>
+        </div>
+      `).join('');
+      
+      if (catalog.length > 20) {
+        catalogList.innerHTML += `<div style="padding: 8px; text-align: center; opacity: 0.5;">... and ${catalog.length - 20} more</div>`;
+      }
+    }
+
+    async function searchArchive(query) {
+      try {
+        const response = await fetch(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=date&rows=100&output=json`);
+        const data = await response.json();
+        return data.response?.docs || [];
+      } catch (e) {
+        log(`Search error: ${query}`, 'error');
+        return [];
+      }
+    }
+
+    async function collect() {
+      progressContainer.style.display = 'block';
+      document.getElementById('collectBtn').disabled = true;
+      
+      log('Starting collection from Archive.org...', 'info');
+      
+      let allDocs = [];
+      const seen = new Set();
+
+      for (let i = 0; i < SEARCH_QUERIES.length; i++) {
+        const query = SEARCH_QUERIES[i];
+        const queryName = query.split(' AND ')[0].replace('subject:', '').replace(/"/g, '');
+        
+        log(`Searching: ${queryName}...`, 'info');
+        
+        const docs = await searchArchive(query);
+        log(`Found ${docs.length} results for "${queryName}"`, 'success');
+        
+        for (const doc of docs) {
+          if (!seen.has(doc.identifier)) {
+            seen.add(doc.identifier);
+            allDocs.push(doc);
+          }
+        }
+      }
+
+      log(`Total unique: ${allDocs.length} tracks`, 'success');
+
+      catalog = allDocs.map(doc => {
+        const existing = catalog.find(t => t.id === doc.identifier);
+        return {
+          id: doc.identifier,
+          title: doc.title?.[0] || doc.title || 'Unknown Title',
+          artist: doc.creator?.[0] || doc.creator || 'Unknown Artist',
+          year: doc.date?.[0]?.substring(0, 4),
+          source: 'archive.org',
+          urlBase: `https://archive.org/download/${doc.identifier}/`,
+          status: existing?.status || 'pending',
+          lastCheck: existing?.lastCheck || null
+        };
+      }).filter(t => t.title && t.title !== 'Unknown Title');
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+      
+      updateStats();
+      renderCatalog();
+      
+      log(`Collection complete! ${catalog.length} tracks added.`, 'success');
+      
+      document.getElementById('collectBtn').disabled = false;
+    }
+
+    async function verifyUrl(url) {
+      return new Promise(resolve => {
+        const timeout = setTimeout(() => resolve(false), 3000);
+        const img = new Image();
+        img.onload = () => { clearTimeout(timeout); resolve(true); };
+        img.onerror = () => { clearTimeout(timeout); resolve(false); };
+        img.src = url + '?t=' + Date.now();
+      });
+    }
+
+    async function verifyUrls() {
+      progressContainer.style.display = 'block';
+      document.getElementById('verifyBtn').disabled = true;
+      
+      log('Starting URL verification...', 'info');
+      
+      const pending = catalog.filter(t => t.status !== 'verified');
+      let verified = 0;
+      let failed = 0;
+
+      for (let i = 0; i < pending.length; i++) {
+        const track = pending[i];
+        
+        progressFill.style.width = ((i + 1) / pending.length * 100) + '%';
+        progressPercent.textContent = `${Math.round((i + 1) / pending.length * 100)}%`;
+        progressStatus.textContent = `Verifying: ${track.title.substring(0, 25)}...`;
+
+        let found = false;
+        
+        for (const pattern of AUDIO_PATTERNS) {
+          const url = track.urlBase + pattern.replace('{id}', track.id);
+          if (await verifyUrl(url)) {
+            found = true;
+            track.validUrl = url;
+            track.status = 'verified';
+            track.lastCheck = new Date().toISOString();
+            verified++;
+            log(`✓ ${track.title.substring(0, 35)}`, 'success');
+            break;
+          }
+        }
+
+        if (!found) {
+          track.status = 'failed';
+          track.lastCheck = new Date().toISOString();
+          failed++;
+        }
+
+        if (i % 15 === 0) localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+      
+      updateStats();
+      renderCatalog();
+      
+      log(`Verification complete: ${verified} valid, ${failed} failed`, 'success');
+      
+      document.getElementById('verifyBtn').disabled = false;
+    }
+
+    function exportToPlayer() {
+      const verified = catalog.filter(t => t.status === 'verified');
+      
+      if (verified.length === 0) {
+        log('No verified tracks to export!', 'error');
+        return;
+      }
+
+      const playerData = verified.map(t => ({
+        title: t.title,
+        artist: t.artist + (t.year ? ` (${t.year})` : ''),
+        url: t.validUrl,
+        id: t.id
+      }));
+
+      localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playerData));
+      
+      log(`Exported ${playerData.length} verified tracks to player!`, 'success');
+      log('Open the player to use verified tracks.', 'info');
+    }
+
+    function clearAll() {
+      if (confirm('Clear all catalog data?')) {
+        catalog = [];
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(PLAYLIST_KEY);
+        updateStats();
+        renderCatalog();
+        log('Catalog cleared.', 'info');
+      }
+    }
+
+    document.getElementById('collectBtn').addEventListener('click', collect);
+    document.getElementById('verifyBtn').addEventListener('click', verifyUrls);
+    document.getElementById('exportBtn').addEventListener('click', exportToPlayer);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
+
+    updateStats();
+    renderCatalog();
+  </script>
+</body>
+</html>
